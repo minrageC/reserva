@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Marcação de Eventos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #6a11cb 0%, #e5e6e7 100%);
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    form > * {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    form > *:focus {
+      border-color: #007BFF;
+      outline: none;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .event-count {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .event-icon {
+      text-align: center;
+      flex-grow: 1;
+    }
+
+    .event-icon p {
+      font-size: 18px;
+      margin-top: 5px;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: #007BFF;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Marcação de Eventos</h1>
+
+  <form id="eventForm">
+    <select id="evento" required>
+      <option value="" disabled selected>Selecione o Tipo de Evento</option>
+      <option value="Casamento">Casamento</option>
+      <option value="Aniversário">Aniversário</option>
+      <option value="Batizado">Batizado</option>
+      <option value="Reunião">Reunião</option>
+      <option value="Baile de Finalistas">Baile de Finalistas</option>
+    </select>
+
+    <input type="date" id="data" required />
+    <input type="text" id="nome" placeholder="Nome" required />
+    <input type="tel" id="celular" placeholder="Número de Celular" required />
+    <input type="number" id="convidados" placeholder="Quantidade de Convidados" required min="1" />
+
+    <select id="numeroWhatsApp" required>
+      <option value="" disabled selected>Escolha o Número para Enviar</option>
+      <option value="258846997570">+258 84 699 7570</option>
+      <option value="258840238204">+258 84 023 8204</option>
+    </select>
+
+    <select id="proveniencia" required>
+      <option value="" disabled selected>Selecione a Proveniência</option>
+      <option value="Chamada Normal">Chamada Normal</option>
+      <option value="SMS">SMS</option>
+      <option value="WhatsApp">WhatsApp</option>
+      <option value="Instagram">Instagram</option>
+      <option value="Facebook">Facebook</option>
+      <option value="Indicação">Alguém Indicou</option>
+    </select>
+
+    <button type="submit">Adicionar Evento</button>
+  </form>
+
+  <div class="event-count" id="eventCount">
+    <div class="event-icon">
+      <strong>Casamento</strong>
+      <p id="casamentoCount">0</p>
+    </div>
+    <div class="event-icon">
+      <strong>Aniversário</strong>
+      <p id="aniversarioCount">0</p>
+    </div>
+    <div class="event-icon">
+      <strong>Batizado</strong>
+      <p id="batizadoCount">0</p>
+    </div>
+    <div class="event-icon">
+      <strong>Reunião</strong>
+      <p id="reuniaoCount">0</p>
+    </div>
+    <div class="event-icon">
+      <strong>Baile</strong>
+      <p id="baileCount">0</p>
+    </div>
+  </div>
+
+  <table id="eventsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tipo</th>
+        <th>Data</th>
+        <th>Nome</th>
+        <th>Celular</th>
+        <th>Convidados</th>
+      <th>Proveniência</th>
+      <th>Data de Registo</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    function getProximoID() {
+      const ultimoID = localStorage.getItem('ultimoID') || 0;
+      const proximoID = parseInt(ultimoID) + 1;
+      localStorage.setItem('ultimoID', proximoID);
+      return proximoID;
+    }
+
+    let eventCounts = {
+      "Casamento": 0,
+      "Aniversário": 0,
+      "Batizado": 0,
+      "Reunião": 0,
+      "Baile de Finalistas": 0
+    };
+
+    let eventos = JSON.parse(localStorage.getItem('eventos')) || [];
+
+    function atualizarTabela() {
+      const tbody = document.querySelector("#eventsTable tbody");
+      tbody.innerHTML = '';
+      eventCounts = { "Casamento": 0, "Aniversário": 0, "Batizado": 0, "Reunião": 0, "Baile de Finalistas": 0 };
+
+      eventos.forEach(ev => {
+        eventCounts[ev.evento]++;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ev.id}</td>
+          <td>${ev.evento}</td>
+          <td>${ev.data}</td>
+          <td>${ev.nome}</td>
+          <td>${ev.celular}</td>
+          <td>${ev.convidados}</td>
+        <td>${ev.proveniencia}</td>
+        <td>${ev.dataRegisto}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      atualizarContagens();
+    }
+
+    function atualizarContagens() {
+      document.getElementById('casamentoCount').textContent = eventCounts['Casamento'];
+      document.getElementById('aniversarioCount').textContent = eventCounts['Aniversário'];
+      document.getElementById('batizadoCount').textContent = eventCounts['Batizado'];
+      document.getElementById('reuniaoCount').textContent = eventCounts['Reunião'];
+      document.getElementById('baileCount').textContent = eventCounts['Baile de Finalistas'];
+    }
+
+    atualizarTabela();
+
+    document.getElementById('eventForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const evento = document.getElementById('evento').value;
+      const data = document.getElementById('data').value;
+      const nome = document.getElementById('nome').value.trim();
+      const celular = document.getElementById('celular').value.trim();
+      const convidados = document.getElementById('convidados').value;
+      const proveniencia = document.getElementById('proveniencia').value;
+      const numeroWhatsApp = document.getElementById('numeroWhatsApp').value;
+
+      const id = getProximoID();
+
+      const dataRegisto = new Date().toLocaleDateString('pt-BR');
+      const novoEvento = {
+        id,
+        evento,
+        data,
+        dataRegisto,
+        nome,
+        celular,
+        convidados,
+        proveniencia
+      };
+
+      eventos.push(novoEvento);
+      localStorage.setItem('eventos', JSON.stringify(eventos));
+      atualizarTabela();
+      this.reset();
+
+      const mensagem = `Marcação de Evento:%0AID: ${id}%0ATipo: ${evento}%0AData: ${data}%0AData de Registo: ${dataRegisto}%0ANome: ${nome}%0ACelular: ${celular}%0AConvidados: ${convidados}%0AProveniência: ${proveniencia}`;
+      const url = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
+      window.open(url, '_blank');
+    });
+  </script>
+</body>
+</html>
